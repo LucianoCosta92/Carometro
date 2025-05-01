@@ -308,7 +308,7 @@ public class Carometro extends JFrame {
 		contentPane.add(btnExcluir);
 		
 		JLabel lblBusca = new JLabel("");
-		lblBusca.setIcon(new ImageIcon("/home/luciano/eclipse-workspace/Carometro/src/img/search2.png"));
+		lblBusca.setIcon(new ImageIcon(Carometro.class.getResource("/img/search2.png")));
 		lblBusca.setBounds(332, 79, 20, 20);
 		contentPane.add(lblBusca);
 		

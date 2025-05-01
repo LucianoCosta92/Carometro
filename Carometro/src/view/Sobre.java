@@ -57,7 +57,7 @@ public class Sobre extends JDialog {
 		getContentPane().add(lblNewLabel_2);
 		
 		JLabel lblNewLabel_3 = new JLabel("");
-		lblNewLabel_3.setIcon(new ImageIcon("/home/luciano/eclipse-workspace/Carometro/src/img/mit.png"));
+		lblNewLabel_3.setIcon(new ImageIcon(Sobre.class.getResource("/img/mit.png")));
 		lblNewLabel_3.setBounds(312, 27, 96, 96);
 		getContentPane().add(lblNewLabel_3);
 		

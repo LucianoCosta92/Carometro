@@ -23,6 +23,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.security.DrbgParameters.Reseed;
 import java.awt.Color;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -67,6 +68,13 @@ public class Carometro extends JFrame {
 	private JLabel lblFoto;
 	private JList<String> listNomes;
 	private JScrollPane scrollPaneLista;
+	private JButton btnAdicionar;
+	private JButton btnEditar;
+	private JButton btnExcluir;
+	private JButton btnReset;
+	private JButton btnBuscar;
+	private JButton btnCarregar;
+	private JButton btnSobre;
 
 	/**
 	 * Launch the application.
@@ -187,6 +195,15 @@ public class Carometro extends JFrame {
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					scrollPaneLista.setVisible(false);
+					int confirma = JOptionPane.showConfirmDialog(null, "Aluno não cadastrado!\nDeseja cadastrar este aluno?", "Aviso", JOptionPane.YES_NO_OPTION);
+					if (confirma == JOptionPane.YES_OPTION) {
+						txtRA.setEditable(false);
+						btnBuscar.setEnabled(false);
+						btnCarregar.setEnabled(true);
+						btnAdicionar.setEnabled(true);
+					} else {
+						reset();
+					}
 				}
 			}
 		});
@@ -202,7 +219,8 @@ public class Carometro extends JFrame {
 		lblFoto.setBounds(440, 12, 256, 256);
 		contentPane.add(lblFoto);
 		
-		JButton btnCarregar = new JButton("Carregar foto");
+		btnCarregar = new JButton("Carregar foto");
+		btnCarregar.setEnabled(false);
 		btnCarregar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				carregarFoto();
@@ -216,7 +234,8 @@ public class Carometro extends JFrame {
 		label.setBounds(72, 200, 51, 15);
 		contentPane.add(label);
 		
-		JButton btnAdicionar = new JButton("");
+		btnAdicionar = new JButton("");
+		btnAdicionar.setEnabled(false);
 		btnAdicionar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -231,7 +250,7 @@ public class Carometro extends JFrame {
 		btnAdicionar.setBounds(39, 204, 64, 64);
 		contentPane.add(btnAdicionar);
 		
-		JButton btnReset = new JButton("");
+		btnReset = new JButton("");
 		btnReset.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				reset();
@@ -242,7 +261,7 @@ public class Carometro extends JFrame {
 		btnReset.setBounds(305, 204, 64, 64);
 		contentPane.add(btnReset);
 		
-		JButton btnBuscar = new JButton("Buscar");
+		btnBuscar = new JButton("Buscar");
 		btnBuscar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -256,8 +275,9 @@ public class Carometro extends JFrame {
 		btnBuscar.setBounds(228, 23, 90, 25);
 		contentPane.add(btnBuscar);
 		
-		JButton btnAdicionar_1 = new JButton("");
-		btnAdicionar_1.addActionListener(new ActionListener() {
+		btnEditar = new JButton("");
+		btnEditar.setEnabled(false);
+		btnEditar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					editar();
@@ -266,12 +286,13 @@ public class Carometro extends JFrame {
 				}
 			}
 		});
-		btnAdicionar_1.setToolTipText("Editar");
-		btnAdicionar_1.setIcon(new ImageIcon(Carometro.class.getResource("/img/reload.png")));
-		btnAdicionar_1.setBounds(127, 204, 64, 64);
-		contentPane.add(btnAdicionar_1);
+		btnEditar.setToolTipText("Editar");
+		btnEditar.setIcon(new ImageIcon(Carometro.class.getResource("/img/reload.png")));
+		btnEditar.setBounds(127, 204, 64, 64);
+		contentPane.add(btnEditar);
 		
-		JButton btnExcluir = new JButton("");
+		btnExcluir = new JButton("");
+		btnExcluir.setEnabled(false);
 		btnExcluir.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -285,6 +306,24 @@ public class Carometro extends JFrame {
 		btnExcluir.setIcon(new ImageIcon(Carometro.class.getResource("/img/excluir.png")));
 		btnExcluir.setBounds(215, 204, 64, 64);
 		contentPane.add(btnExcluir);
+		
+		JLabel lblBusca = new JLabel("");
+		lblBusca.setIcon(new ImageIcon("/home/luciano/eclipse-workspace/Carometro/src/img/search2.png"));
+		lblBusca.setBounds(332, 79, 20, 20);
+		contentPane.add(lblBusca);
+		
+		btnSobre = new JButton("");
+		btnSobre.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Sobre sobre = new Sobre();
+				sobre.setVisible(true);
+			}
+		});
+		btnSobre.setContentAreaFilled(false);
+		btnSobre.setBorderPainted(false);
+		btnSobre.setIcon(new ImageIcon(Carometro.class.getResource("/img/about.png")));
+		btnSobre.setBounds(359, 12, 48, 48);
+		contentPane.add(btnSobre);
 	}
 	
 	@SuppressWarnings("unused")
@@ -382,8 +421,23 @@ public class Carometro extends JFrame {
 					ImageIcon icone = new ImageIcon(imagem);
 					ImageIcon foto = new ImageIcon(icone.getImage().getScaledInstance(lblFoto.getWidth(), lblFoto.getHeight(), Image.SCALE_SMOOTH));
 					lblFoto.setIcon(foto);
+					txtRA.setEditable(false);
+					btnBuscar.setEnabled(false);
+					btnCarregar.setEnabled(true);
+					btnEditar.setEnabled(true);
+					btnExcluir.setEnabled(true);
 				} else {
-					JOptionPane.showMessageDialog(null, "Aluno não cadastrado!");
+					int confirma = JOptionPane.showConfirmDialog(null, "Aluno não cadastrado!\nDeseja iniciar um novo cadastro?", "Aviso", JOptionPane.YES_NO_OPTION);
+					if (confirma == JOptionPane.YES_OPTION) {
+						txtRA.setEditable(false);
+						btnBuscar.setEnabled(false);
+						txtNome.setText(null);
+						txtNome.requestFocus();
+						btnCarregar.setEnabled(true);
+						btnAdicionar.setEnabled(true);
+					} else {
+						reset();
+					}
 				}
 			} catch (Exception e) {
 				System.out.println(e);
@@ -438,6 +492,12 @@ public class Carometro extends JFrame {
 					ImageIcon icone = new ImageIcon(imagem);
 					ImageIcon foto = new ImageIcon(icone.getImage().getScaledInstance(lblFoto.getWidth(), lblFoto.getHeight(), Image.SCALE_SMOOTH));
 					lblFoto.setIcon(foto);
+					lblFoto.setIcon(foto);
+					txtRA.setEditable(false);
+					btnBuscar.setEnabled(false);
+					btnCarregar.setEnabled(true);
+					btnEditar.setEnabled(true);
+					btnExcluir.setEnabled(true);
 				}
 			} catch (Exception e) {
 				System.out.println(e);
@@ -526,5 +586,12 @@ public class Carometro extends JFrame {
 		txtNome.requestFocus();
 		fotoCarregada = false;
 		tamanho = 0;
+		txtRA.setEditable(true);
+		btnBuscar.setEnabled(true);
+		btnCarregar.setEnabled(false);
+		btnAdicionar.setEnabled(false);
+		btnEditar.setEnabled(false);
+		btnExcluir.setEnabled(false);
+		
 	}
 }

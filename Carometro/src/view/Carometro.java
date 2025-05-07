@@ -7,6 +7,12 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+
 import model.DAO;
 import utils.Validador;
 
@@ -22,9 +28,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
-import java.security.DrbgParameters.Reseed;
+import java.io.FileOutputStream;
 import java.awt.Color;
+import java.awt.Desktop;
+
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.imageio.ImageIO;
@@ -75,6 +84,7 @@ public class Carometro extends JFrame {
 	private JButton btnBuscar;
 	private JButton btnCarregar;
 	private JButton btnSobre;
+	private JButton btnPDF;
 
 	/**
 	 * Launch the application.
@@ -125,7 +135,7 @@ public class Carometro extends JFrame {
 		scrollPaneLista.setBounds(105, 100, 221, 79);
 		contentPane.add(scrollPaneLista);
 		
-		listNomes = new JList();
+		listNomes = new JList<String>();
 		listNomes.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -141,7 +151,7 @@ public class Carometro extends JFrame {
 		
 		JPanel panel = new JPanel();
 		panel.setBackground(new Color(0, 0, 0));
-		panel.setBounds(0, 299, 771, 79);
+		panel.setBounds(0, 300, 722, 79);
 		contentPane.add(panel);
 		panel.setLayout(null);
 		
@@ -201,6 +211,7 @@ public class Carometro extends JFrame {
 						btnBuscar.setEnabled(false);
 						btnCarregar.setEnabled(true);
 						btnAdicionar.setEnabled(true);
+						btnPDF.setEnabled(false);
 					} else {
 						reset();
 					}
@@ -247,7 +258,7 @@ public class Carometro extends JFrame {
 		});
 		btnAdicionar.setToolTipText("Adicionar");
 		btnAdicionar.setIcon(new ImageIcon(Carometro.class.getResource("/img/add.png")));
-		btnAdicionar.setBounds(39, 204, 64, 64);
+		btnAdicionar.setBounds(18, 204, 64, 64);
 		contentPane.add(btnAdicionar);
 		
 		btnReset = new JButton("");
@@ -258,7 +269,7 @@ public class Carometro extends JFrame {
 		});
 		btnReset.setToolTipText("Limpar campos");
 		btnReset.setIcon(new ImageIcon(Carometro.class.getResource("/img/vassoura.png")));
-		btnReset.setBounds(305, 204, 64, 64);
+		btnReset.setBounds(322, 204, 64, 64);
 		contentPane.add(btnReset);
 		
 		btnBuscar = new JButton("Buscar");
@@ -288,7 +299,7 @@ public class Carometro extends JFrame {
 		});
 		btnEditar.setToolTipText("Editar");
 		btnEditar.setIcon(new ImageIcon(Carometro.class.getResource("/img/reload.png")));
-		btnEditar.setBounds(127, 204, 64, 64);
+		btnEditar.setBounds(94, 204, 64, 64);
 		contentPane.add(btnEditar);
 		
 		btnExcluir = new JButton("");
@@ -304,7 +315,7 @@ public class Carometro extends JFrame {
 		});
 		btnExcluir.setToolTipText("Excluir");
 		btnExcluir.setIcon(new ImageIcon(Carometro.class.getResource("/img/excluir.png")));
-		btnExcluir.setBounds(215, 204, 64, 64);
+		btnExcluir.setBounds(170, 204, 64, 64);
 		contentPane.add(btnExcluir);
 		
 		JLabel lblBusca = new JLabel("");
@@ -324,6 +335,18 @@ public class Carometro extends JFrame {
 		btnSobre.setIcon(new ImageIcon(Carometro.class.getResource("/img/about.png")));
 		btnSobre.setBounds(359, 12, 48, 48);
 		contentPane.add(btnSobre);
+		
+		btnPDF = new JButton("");
+		btnPDF.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				gerarPDF();
+			}
+		});
+		btnPDF.setIcon(new ImageIcon(Carometro.class.getResource("/img/pdf.png")));
+		btnPDF.setToolTipText("Gerar lista de alunos");
+		btnPDF.setBounds(246, 204, 64, 64);
+		contentPane.add(btnPDF);
+		this.setLocationRelativeTo(null);
 	}
 	
 	@SuppressWarnings("unused")
@@ -331,10 +354,8 @@ public class Carometro extends JFrame {
 		try {
 			con = dao.conectar();
 			if (con == null) {
-				// System.out.println("Erro de conexão!");
 				lblStatus.setIcon(new ImageIcon(Carometro.class.getResource("/img/error.png")));
 			} else {
-				// System.out.println("Banco de dados conectado!");
 				lblStatus.setIcon(new ImageIcon(Carometro.class.getResource("/img/on.png")));
 			}
 		} catch (Exception e) {
@@ -363,7 +384,6 @@ public class Carometro extends JFrame {
 				lblFoto.setIcon(new ImageIcon(foto));
 				fotoCarregada = true;
 			} catch (Exception e) {
-				// JOptionPane.showMessageDialog(this, "Erro ao caregar imagem: " + e);
 				System.out.println(e);
 			}
 		}
@@ -426,6 +446,7 @@ public class Carometro extends JFrame {
 					btnCarregar.setEnabled(true);
 					btnEditar.setEnabled(true);
 					btnExcluir.setEnabled(true);
+					btnPDF.setEnabled(false);
 				} else {
 					int confirma = JOptionPane.showConfirmDialog(null, "Aluno não cadastrado!\nDeseja iniciar um novo cadastro?", "Aviso", JOptionPane.YES_NO_OPTION);
 					if (confirma == JOptionPane.YES_OPTION) {
@@ -498,6 +519,7 @@ public class Carometro extends JFrame {
 					btnCarregar.setEnabled(true);
 					btnEditar.setEnabled(true);
 					btnExcluir.setEnabled(true);
+					btnPDF.setEnabled(false);
 				}
 			} catch (Exception e) {
 				System.out.println(e);
@@ -578,6 +600,58 @@ public class Carometro extends JFrame {
 		}
 	}
 	
+	private void gerarPDF() {
+		Document document = new Document();
+		
+		// gerar documento pdf
+		try {
+			PdfWriter.getInstance(document, new FileOutputStream("alunos.pdf"));
+			document.open();
+			Date data = new Date();
+			DateFormat formatador = DateFormat.getDateInstance(DateFormat.FULL);
+			document.add(new Paragraph(formatador.format(data)));
+			document.add(new Paragraph("Listagem de alunos: "));
+			document.add(new Paragraph(" "));
+			// tabela
+			PdfPTable tabela = new PdfPTable(3);
+			PdfPCell coluna1 = new PdfPCell(new Paragraph("RA"));
+			tabela.addCell(coluna1);
+			PdfPCell coluna2 = new PdfPCell(new Paragraph("Nome"));
+			tabela.addCell(coluna2);
+			PdfPCell coluna3 = new PdfPCell(new Paragraph("Foto"));
+			tabela.addCell(coluna3);
+			String readLista = "select * from alunos order by nome";
+			try {
+				con = dao.conectar();
+				pst = con.prepareStatement(readLista);
+				rs = pst.executeQuery();
+				while (rs.next()) {
+					tabela.addCell(rs.getString(1));
+					tabela.addCell(rs.getString(2));
+					Blob blob = rs.getBlob(3);
+					byte[] img = blob.getBytes(1, (int) blob.length());
+					com.itextpdf.text.Image image = com.itextpdf.text.Image.getInstance(img);
+					tabela.addCell(image);
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			} finally {
+				con.close();
+			}
+			document.add(tabela);
+		} catch (Exception e) {
+			System.out.println(e);
+		} finally {
+			document.close();
+		}
+		// abrir o documento pdf no leitor
+		try {
+			Desktop.getDesktop().open(new File("alunos.pdf"));
+		} catch (Exception e2) {
+			System.out.println(e2);
+		}
+	}
+	
 	private void reset() {
 		scrollPaneLista.setVisible(false);
 		txtRA.setText(null);
@@ -592,6 +666,6 @@ public class Carometro extends JFrame {
 		btnAdicionar.setEnabled(false);
 		btnEditar.setEnabled(false);
 		btnExcluir.setEnabled(false);
-		
+		btnPDF.setEnabled(true);
 	}
 }
